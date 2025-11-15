@@ -17,11 +17,11 @@ interface TaskCardProps {
 
 export function TaskCard({ task, index }: TaskCardProps) {
   const navigate = useNavigate()
-  const priorityColors = {
-    low: 'info',
-    medium: 'warning',
-    high: 'error',
-  } as const
+  const priorityColors: Record<'LOW' | 'MEDIUM' | 'HIGH', 'info' | 'warning' | 'error'> = {
+    LOW: 'info',
+    MEDIUM: 'warning',
+    HIGH: 'error',
+  }
 
   return (
     <Draggable draggableId={task.id} index={index}>

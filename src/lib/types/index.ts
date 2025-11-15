@@ -1,8 +1,8 @@
 // Core domain types
 
-export type TaskStatus = 'inbox' | 'todo' | 'in-progress' | 'done'
+export type TaskStatus = 'inbox' | 'todo' | 'in-progress' | 'blocked' | 'done'
 
-export type TaskPriority = 'low' | 'medium' | 'high'
+export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH'
 
 export interface Tag {
   id: string
@@ -48,7 +48,7 @@ export interface Analytics {
   completedTasks: number
   inProgressTasks: number
   tasksByStatus: Record<TaskStatus, number>
-  tasksByPriority: Record<TaskPriority, number>
+  tasksByPriority: Record<'LOW' | 'MEDIUM' | 'HIGH', number>
   tasksByTag: Array<{ tag: Tag; count: number }>
   averageCompletionTime: number
   tasksCompletedToday: number
@@ -108,13 +108,11 @@ export interface CreateNoteResponse {
 export interface CreateTaskRequest {
   title: string
   description?: string
-  status?: TaskStatus
   priority?: TaskPriority
-  tagIds?: string[]
-  assigneeIds?: string[]
   dueDate?: string
-  estimatedMinutes?: number
   noteId?: string
+  ownerId?: string
+  projectId?: string | null
 }
 
 export interface UpdateTaskRequest {
@@ -142,6 +140,30 @@ export interface SearchRequest {
 export interface SearchResponse {
   tasks: Task[]
   notes: Note[]
+}
+
+// Board API Response
+export interface BoardTask {
+  id: string
+  title: string
+  description: string | null
+  status: 'TODO' | 'IN_PROGRESS' | 'BLOCKED' | 'DONE'
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | null
+  dueDate: string | null
+  blockerReason: string | null
+  orgId: string
+  projectId: string | null
+  noteId: string | null
+  ownerId: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface TasksBoardResponse {
+  TODO: BoardTask[]
+  IN_PROGRESS: BoardTask[]
+  BLOCKED: BoardTask[]
+  DONE: BoardTask[]
 }
 
 // Error types

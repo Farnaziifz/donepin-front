@@ -5,7 +5,24 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../api'
 import { QUERY_KEYS } from '../../utils/constants'
-import type { CreateTaskRequest, UpdateTaskRequest } from '../../types'
+import type { CreateTaskRequest, UpdateTaskRequest, BoardTask, TasksBoardResponse, TaskStatus } from '../../types'
+
+// Map internal status to API status
+const mapInternalStatusToApi = (status: TaskStatus): BoardTask['status'] => {
+  switch (status) {
+    case 'todo':
+    case 'inbox':
+      return 'TODO'
+    case 'in-progress':
+      return 'IN_PROGRESS'
+    case 'blocked':
+      return 'BLOCKED'
+    case 'done':
+      return 'DONE'
+    default:
+      return 'TODO'
+  }
+}
 
 export function useTasks() {
   return useQuery({
@@ -56,12 +73,30 @@ export function useUpdateTask() {
       })
 
       queryClient.setQueryData(QUERY_KEYS.tasks, (old: unknown) => {
-        if (!Array.isArray(old)) return old
-        return old.map((task) =>
-          task.id === id
-            ? { ...task, ...data, updatedAt: new Date().toISOString() }
-            : task
-        )
+        if (!old || typeof old !== 'object') return old
+        const boardData = { ...(old as TasksBoardResponse) }
+        
+        // Convert status to API format if present and build update data
+        const updateData: Partial<BoardTask> = {}
+        if (data.title !== undefined) updateData.title = data.title
+        if (data.description !== undefined) updateData.description = data.description ?? null
+        if (data.status !== undefined) updateData.status = mapInternalStatusToApi(data.status)
+        if (data.priority !== undefined) updateData.priority = data.priority ?? null
+        if (data.dueDate !== undefined) updateData.dueDate = data.dueDate ?? null
+        
+        // Update task in the appropriate status array
+        const statusKeys: Array<keyof TasksBoardResponse> = ['TODO', 'IN_PROGRESS', 'BLOCKED', 'DONE']
+        for (const key of statusKeys) {
+          if (Array.isArray(boardData[key])) {
+            boardData[key] = boardData[key].map((task: BoardTask) =>
+              task.id === id
+                ? { ...task, ...updateData, updatedAt: new Date().toISOString() }
+                : task
+            )
+          }
+        }
+        
+        return boardData
       })
 
       return { previousTask, previousTasks }
@@ -69,13 +104,13 @@ export function useUpdateTask() {
     onError: (_err, _variables, context) => {
       // Rollback on error
       if (context?.previousTask) {
-        queryClient.setQueryData(QUERY_KEYS.task(id), context.previousTask)
+        queryClient.setQueryData(QUERY_KEYS.task(_variables.id), context.previousTask)
       }
       if (context?.previousTasks) {
         queryClient.setQueryData(QUERY_KEYS.tasks, context.previousTasks)
       }
     },
-    onSettled: (data, _error, variables) => {
+    onSettled: (_data, _error, variables) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.task(variables.id) })
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.tasks })
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.analytics })

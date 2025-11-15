@@ -2,11 +2,20 @@
  * Header component with mobile menu button
  */
 
+import { useNavigate } from 'react-router-dom'
 import { useUIStore } from '../../lib/store/ui-store'
+import { useAuthStore } from '../../lib/store'
 import { Button } from '../ui/button'
 
 export function Header() {
+  const navigate = useNavigate()
   const { toggleSidebar } = useUIStore()
+  const { user, clearAuth } = useAuthStore()
+
+  const handleLogout = () => {
+    clearAuth()
+    navigate('/login')
+  }
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-background px-4 lg:px-6">
@@ -24,7 +33,16 @@ export function Header() {
 
       <div className="flex-1" />
 
-      {/* Right side actions can be added here */}
+      <div className="flex items-center gap-4">
+        {user && (
+          <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
+            <span>{user.name || user.email}</span>
+          </div>
+        )}
+        <Button variant="ghost" size="sm" onClick={handleLogout}>
+          Logout
+        </Button>
+      </div>
     </header>
   )
 }

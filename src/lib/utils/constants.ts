@@ -35,10 +35,10 @@ export const TASK_STATUSES: Array<{ value: 'inbox' | 'todo' | 'in-progress' | 'd
   { value: 'done', label: 'Done' },
 ]
 
-export const TASK_PRIORITIES: Array<{ value: 'low' | 'medium' | 'high'; label: string; color: string }> = [
-  { value: 'low', label: 'Low', color: 'blue' },
-  { value: 'medium', label: 'Medium', color: 'yellow' },
-  { value: 'high', label: 'High', color: 'red' },
+export const TASK_PRIORITIES: Array<{ value: 'LOW' | 'MEDIUM' | 'HIGH'; label: string; color: string }> = [
+  { value: 'LOW', label: 'Low', color: 'blue' },
+  { value: 'MEDIUM', label: 'Medium', color: 'yellow' },
+  { value: 'HIGH', label: 'High', color: 'red' },
 ]
 
 export const TAG_COLORS = [

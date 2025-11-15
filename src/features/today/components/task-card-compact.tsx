@@ -47,11 +47,11 @@ export function TaskCardCompact({ task }: TaskCardCompactProps) {
     }
   }
 
-  const priorityColors = {
-    low: 'info',
-    medium: 'warning',
-    high: 'error',
-  } as const
+  const priorityColors: Record<'LOW' | 'MEDIUM' | 'HIGH', 'info' | 'warning' | 'error'> = {
+    LOW: 'info',
+    MEDIUM: 'warning',
+    HIGH: 'error',
+  }
 
   return (
     <div className="group flex items-center gap-3 rounded-lg border border-border bg-background p-3 hover:shadow-md transition-all">

@@ -7,43 +7,105 @@ import { useMemo } from 'react'
 import { useTasks, useUpdateTask, useToast } from '../../lib/hooks'
 import { KanbanColumn } from './components/kanban-column'
 import { Skeleton } from '../../components/ui/skeleton'
-import type { Task, TaskStatus } from '../../lib/types'
+import type { Task, TaskStatus, TasksBoardResponse, BoardTask } from '../../lib/types'
 
-const columns: Array<{ status: TaskStatus; title: string }> = [
-  { status: 'inbox', title: 'Inbox' },
-  { status: 'todo', title: 'To Do' },
-  { status: 'in-progress', title: 'In Progress' },
-  { status: 'done', title: 'Done' },
+const columns: Array<{ status: TaskStatus; title: string; apiKey: keyof TasksBoardResponse }> = [
+  { status: 'todo', title: 'To Do', apiKey: 'TODO' },
+  { status: 'in-progress', title: 'In Progress', apiKey: 'IN_PROGRESS' },
+  { status: 'blocked', title: 'Blocked', apiKey: 'BLOCKED' },
+  { status: 'done', title: 'Done', apiKey: 'DONE' },
 ]
 
+// Map API status to internal status
+const mapApiStatusToInternal = (apiStatus: BoardTask['status']): TaskStatus => {
+  switch (apiStatus) {
+    case 'TODO':
+      return 'todo'
+    case 'IN_PROGRESS':
+      return 'in-progress'
+    case 'BLOCKED':
+      return 'blocked'
+    case 'DONE':
+      return 'done'
+    default:
+      return 'todo'
+  }
+}
+
+// Map internal status to API status
+const mapInternalStatusToApi = (status: TaskStatus): BoardTask['status'] => {
+  switch (status) {
+    case 'todo':
+    case 'inbox':
+      return 'TODO'
+    case 'in-progress':
+      return 'IN_PROGRESS'
+    case 'blocked':
+      return 'BLOCKED'
+    case 'done':
+      return 'DONE'
+    default:
+      return 'TODO'
+  }
+}
+
+// Convert BoardTask to Task
+const convertBoardTaskToTask = (boardTask: BoardTask): Task => {
+  return {
+    id: boardTask.id,
+    title: boardTask.title,
+    description: boardTask.description || undefined,
+    status: mapApiStatusToInternal(boardTask.status),
+    priority: boardTask.priority || 'MEDIUM',
+    tags: [], // API doesn't return tags in board response
+    assignees: [], // API doesn't return assignees in board response
+    dueDate: boardTask.dueDate || undefined,
+    createdAt: boardTask.createdAt,
+    updatedAt: boardTask.updatedAt,
+    noteId: boardTask.noteId || undefined,
+  }
+}
+
 export function BoardPage() {
-  const { data: tasks, isLoading, error } = useTasks()
+  const { data: boardData, isLoading, error } = useTasks()
   const updateTask = useUpdateTask()
   const toast = useToast()
 
   const tasksByStatus = useMemo(() => {
-    if (!tasks) return {} as Record<TaskStatus, Task[]>
-    return tasks.reduce(
-      (acc: Record<TaskStatus, Task[]>, task) => {
-        if (!acc[task.status]) {
-          acc[task.status] = []
-        }
-        acc[task.status].push(task)
-        return acc
-      },
-      {} as Record<TaskStatus, Task[]>
-    )
-  }, [tasks])
+    if (!boardData) return {} as Record<TaskStatus, Task[]>
+    
+    const result: Record<TaskStatus, Task[]> = {
+      todo: [],
+      'in-progress': [],
+      blocked: [],
+      done: [],
+      inbox: [],
+    }
+
+    // Convert board data to tasks grouped by status
+    columns.forEach((column) => {
+      const boardTasks = boardData[column.apiKey] || []
+      result[column.status] = boardTasks.map(convertBoardTaskToTask)
+    })
+
+    return result
+  }, [boardData])
 
   const handleDragEnd = async (result: DropResult) => {
-    if (!result.destination) return
+    if (!result.destination || !boardData) return
 
     const taskId = result.draggableId
     const newStatus = result.destination.droppableId as TaskStatus
+    const apiStatus = mapInternalStatusToApi(newStatus)
 
-    // Find the task
-    const task = tasks?.find((t: { id: string }) => t.id === taskId)
-    if (!task || task.status === newStatus) return
+    // Find the task in board data
+    let foundTask: BoardTask | undefined
+    for (const key of ['TODO', 'IN_PROGRESS', 'BLOCKED', 'DONE'] as const) {
+      foundTask = boardData[key]?.find((t) => t.id === taskId)
+      if (foundTask) break
+    }
+
+    if (!foundTask || foundTask.status === apiStatus) return
 
     try {
       await updateTask.mutateAsync({

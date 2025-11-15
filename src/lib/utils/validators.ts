@@ -24,8 +24,8 @@ export function isValidTaskStatus(value: string): value is 'inbox' | 'todo' | 'i
   return ['inbox', 'todo', 'in-progress', 'done'].includes(value)
 }
 
-export function isValidPriority(value: string): value is 'low' | 'medium' | 'high' {
-  return ['low', 'medium', 'high'].includes(value)
+export function isValidPriority(value: string): value is 'LOW' | 'MEDIUM' | 'HIGH' {
+  return ['LOW', 'MEDIUM', 'HIGH'].includes(value)
 }
 
 export function isValidDateString(value: string): boolean {

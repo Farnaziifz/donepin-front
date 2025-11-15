@@ -54,11 +54,11 @@ export function TaskPage() {
     )
   }
 
-  const priorityColors = {
-    low: 'info',
-    medium: 'warning',
-    high: 'error',
-  } as const
+  const priorityColors: Record<'LOW' | 'MEDIUM' | 'HIGH', 'info' | 'warning' | 'error'> = {
+    LOW: 'info',
+    MEDIUM: 'warning',
+    HIGH: 'error',
+  }
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">

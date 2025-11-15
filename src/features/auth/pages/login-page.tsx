@@ -10,7 +10,7 @@ import { useToast } from '../../../lib/hooks'
 import { Button } from '../../../components/ui/button'
 import { Input } from '../../../components/ui/input'
 import type { LoginRequest } from '../../../lib/types'
-import { isValidEmail, isValidNoteContent } from '../../../lib/utils/validators'
+import { isValidEmail } from '../../../lib/utils/validators'
 
 const validateEmail = (email: string): boolean => {
   return isValidEmail(email)

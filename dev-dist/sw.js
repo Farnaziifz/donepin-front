@@ -67,7 +67,7 @@ if (!self.define) {
     });
   };
 }
-define(['module', './workbox-cdaeb6fa'], (function (module, workbox) { 'use strict';
+define(['./workbox-cdaeb6fa'], (function (workbox) { 'use strict';
 
   self.skipWaiting();
   workbox.clientsClaim();
@@ -82,7 +82,7 @@ define(['module', './workbox-cdaeb6fa'], (function (module, workbox) { 'use stri
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "index.html",
-    "revision": "0.n7cf53865ro"
+    "revision": "0.p77e023mr9"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
@@ -91,7 +91,6 @@ define(['module', './workbox-cdaeb6fa'], (function (module, workbox) { 'use stri
   workbox.registerRoute(({
     url
   }) => {
-    const apiBase = undefined.VITE_API_BASE || "http://localhost:3000";
     return url.href.startsWith(apiBase);
   }, new workbox.NetworkFirst({
     "cacheName": "api-cache",

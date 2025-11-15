@@ -21,6 +21,7 @@ import type {
   LoginResponse,
   RegisterRequest,
   RegisterResponse,
+  TasksBoardResponse,
 } from '../types'
 
 // Simulate network delay
@@ -104,29 +105,7 @@ export const mockApi = {
     return task
   },
 
-  async createTask(data: CreateTaskRequest): Promise<Task> {
-    await delay()
-    const task: Task = {
-      id: `task_${Date.now()}`,
-      title: data.title,
-      description: data.description,
-      status: data.status || 'inbox',
-      priority: data.priority || 'medium',
-      tags: data.tagIds
-        ? mockTags.filter((t) => data.tagIds!.includes(t.id))
-        : [],
-      assignees: data.assigneeIds
-        ? mockPeople.filter((p) => data.assigneeIds!.includes(p.id))
-        : [],
-      dueDate: data.dueDate,
-      estimatedMinutes: data.estimatedMinutes,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      noteId: data.noteId,
-    }
-    mockStore.tasks.unshift(task)
-    return task
-  },
+  // createTask removed - using real API now
 
   async updateTask(id: string, data: UpdateTaskRequest): Promise<Task> {
     await delay()
@@ -211,9 +190,9 @@ export const mockApi = {
         done: tasks.filter((t) => t.status === 'done').length,
       },
       tasksByPriority: {
-        low: tasks.filter((t) => t.priority === 'low').length,
-        medium: tasks.filter((t) => t.priority === 'medium').length,
-        high: tasks.filter((t) => t.priority === 'high').length,
+        LOW: tasks.filter((t) => t.priority === 'LOW').length,
+        MEDIUM: tasks.filter((t) => t.priority === 'MEDIUM').length,
+        HIGH: tasks.filter((t) => t.priority === 'HIGH').length,
       },
       tasksByTag: mockStore.tags.map((tag) => ({
         tag,
@@ -227,23 +206,23 @@ export const mockApi = {
   },
 }
 
-// Export API functions that will use mock until backend is ready
+// Export API functions - using real API
 export const api = {
   // Auth
-  login: (data: LoginRequest) => mockApi.login(data),
-  register: (data: RegisterRequest) => mockApi.register(data),
+  login: (data: LoginRequest) => apiClient.post<LoginResponse>('/auth/login', data),
+  register: (data: RegisterRequest) => apiClient.post<RegisterResponse>('/auth/register', data),
 
   // Notes
-  getNotes: () => mockApi.getNotes(),
-  createNote: (data: CreateNoteRequest) => mockApi.createNote(data),
-  deleteNote: (id: string) => mockApi.deleteNote(id),
+  getNotes: () => apiClient.get<Note[]>('/notes'),
+  createNote: (data: CreateNoteRequest) => apiClient.post<Note>('/notes', data),
+  deleteNote: (id: string) => apiClient.delete<void>(`/notes/${id}`),
 
   // Tasks
-  getTasks: () => mockApi.getTasks(),
-  getTask: (id: string) => mockApi.getTask(id),
-  createTask: (data: CreateTaskRequest) => mockApi.createTask(data),
-  updateTask: (id: string, data: UpdateTaskRequest) => mockApi.updateTask(id, data),
-  deleteTask: (id: string) => mockApi.deleteTask(id),
+  getTasks: () => apiClient.get<TasksBoardResponse>('/tasks/board'),
+  getTask: (id: string) => apiClient.get<Task>(`/tasks/${id}`),
+  createTask: (data: CreateTaskRequest) => apiClient.post<Task>('/tasks', data),
+  updateTask: (id: string, data: UpdateTaskRequest) => apiClient.patch<Task>(`/tasks/${id}`, data),
+  deleteTask: (id: string) => apiClient.delete<void>(`/tasks/${id}`),
 
   // Tags
   getTags: () => mockApi.getTags(),

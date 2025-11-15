@@ -87,7 +87,7 @@ export function RegisterPage() {
       const response = await api.register({
         email: formData.email,
         password: formData.password,
-        name: formData.name || undefined,
+        name: formData.name?.trim() || undefined,
       })
       setAuth(response.accessToken, response.user)
       toast.success('Account created successfully!')
