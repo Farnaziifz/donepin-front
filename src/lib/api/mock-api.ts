@@ -15,6 +15,7 @@ import type {
   CreateNoteResponse,
   CreateTaskRequest,
   UpdateTaskRequest,
+  UpdateTaskStatusRequest,
   SearchRequest,
   SearchResponse,
   LoginRequest,
@@ -187,6 +188,7 @@ export const mockApi = {
         inbox: tasks.filter((t) => t.status === 'inbox').length,
         todo: tasks.filter((t) => t.status === 'todo').length,
         'in-progress': tasks.filter((t) => t.status === 'in-progress').length,
+        blocked: tasks.filter((t) => t.status === 'blocked').length,
         done: tasks.filter((t) => t.status === 'done').length,
       },
       tasksByPriority: {
@@ -222,6 +224,7 @@ export const api = {
   getTask: (id: string) => apiClient.get<Task>(`/tasks/${id}`),
   createTask: (data: CreateTaskRequest) => apiClient.post<Task>('/tasks', data),
   updateTask: (id: string, data: UpdateTaskRequest) => apiClient.patch<Task>(`/tasks/${id}`, data),
+  updateTaskStatus: (id: string, data: UpdateTaskStatusRequest) => apiClient.patch<void>(`/tasks/${id}/status`, data),
   deleteTask: (id: string) => apiClient.delete<void>(`/tasks/${id}`),
 
   // Tags

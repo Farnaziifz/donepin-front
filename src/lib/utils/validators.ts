@@ -47,9 +47,6 @@ export function validateNoteContent(content: string): { valid: boolean; error?: 
   if (!isNonEmptyString(content)) {
     return { valid: false, error: 'Content is required' }
   }
-  if (content.length > 1000) {
-    return { valid: false, error: 'Content must be less than 1000 characters' }
-  }
   return { valid: true }
 }
 

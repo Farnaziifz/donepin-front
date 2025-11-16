@@ -5,7 +5,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../api'
 import { QUERY_KEYS } from '../../utils/constants'
-import type { CreateTaskRequest, UpdateTaskRequest, BoardTask, TasksBoardResponse, TaskStatus } from '../../types'
+import type { CreateTaskRequest, UpdateTaskRequest, UpdateTaskStatusRequest, BoardTask, TasksBoardResponse, TaskStatus } from '../../types'
 
 // Map internal status to API status
 const mapInternalStatusToApi = (status: TaskStatus): BoardTask['status'] => {
@@ -106,6 +106,76 @@ export function useUpdateTask() {
       if (context?.previousTask) {
         queryClient.setQueryData(QUERY_KEYS.task(_variables.id), context.previousTask)
       }
+      if (context?.previousTasks) {
+        queryClient.setQueryData(QUERY_KEYS.tasks, context.previousTasks)
+      }
+    },
+    onSettled: (_data, _error, variables) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.task(variables.id) })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.tasks })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.analytics })
+    },
+  })
+}
+
+export function useUpdateTaskStatus() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: BoardTask['status'] }) => {
+      const statusData: UpdateTaskStatusRequest = { status }
+      return api.updateTaskStatus(id, statusData)
+    },
+    onMutate: async ({ id, status }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.task(id) })
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.tasks })
+
+      // Snapshot previous value
+      const previousTasks = queryClient.getQueryData(QUERY_KEYS.tasks)
+
+      // Optimistically update board data
+      queryClient.setQueryData(QUERY_KEYS.tasks, (old: unknown) => {
+        if (!old || typeof old !== 'object') return old
+        const boardData = { ...(old as TasksBoardResponse) }
+        
+        // Find and move task to new status
+        const statusKeys: Array<keyof TasksBoardResponse> = ['TODO', 'IN_PROGRESS', 'BLOCKED', 'DONE']
+        let foundTask: BoardTask | undefined
+        let sourceKey: keyof TasksBoardResponse | undefined
+
+        // Find task in current arrays
+        for (const key of statusKeys) {
+          if (Array.isArray(boardData[key])) {
+            const taskIndex = boardData[key].findIndex((t) => t.id === id)
+            if (taskIndex !== -1) {
+              foundTask = boardData[key][taskIndex]
+              sourceKey = key
+              break
+            }
+          }
+        }
+
+        if (!foundTask || !sourceKey) return old
+
+        // Remove from old status
+        boardData[sourceKey] = boardData[sourceKey].filter((t) => t.id !== id)
+
+        // Add to new status with updated status and timestamp
+        const updatedTask: BoardTask = {
+          ...foundTask,
+          status,
+          updatedAt: new Date().toISOString(),
+        }
+        boardData[status] = [...(boardData[status] || []), updatedTask]
+
+        return boardData
+      })
+
+      return { previousTasks }
+    },
+    onError: (_err, _variables, context) => {
+      // Rollback on error
       if (context?.previousTasks) {
         queryClient.setQueryData(QUERY_KEYS.tasks, context.previousTasks)
       }

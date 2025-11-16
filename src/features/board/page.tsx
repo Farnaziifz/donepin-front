@@ -4,7 +4,7 @@
 
 import { DragDropContext, type DropResult } from '@hello-pangea/dnd'
 import { useMemo } from 'react'
-import { useTasks, useUpdateTask, useToast } from '../../lib/hooks'
+import { useTasks, useUpdateTaskStatus, useToast } from '../../lib/hooks'
 import { KanbanColumn } from './components/kanban-column'
 import { Skeleton } from '../../components/ui/skeleton'
 import type { Task, TaskStatus, TasksBoardResponse, BoardTask } from '../../lib/types'
@@ -68,7 +68,7 @@ const convertBoardTaskToTask = (boardTask: BoardTask): Task => {
 
 export function BoardPage() {
   const { data: boardData, isLoading, error } = useTasks()
-  const updateTask = useUpdateTask()
+  const updateTaskStatus = useUpdateTaskStatus()
   const toast = useToast()
 
   const tasksByStatus = useMemo(() => {
@@ -108,9 +108,9 @@ export function BoardPage() {
     if (!foundTask || foundTask.status === apiStatus) return
 
     try {
-      await updateTask.mutateAsync({
+      await updateTaskStatus.mutateAsync({
         id: taskId,
-        data: { status: newStatus },
+        status: apiStatus,
       })
       toast.success('Task moved successfully')
     } catch (err) {

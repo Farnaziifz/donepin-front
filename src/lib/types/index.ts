@@ -127,6 +127,10 @@ export interface UpdateTaskRequest {
   estimatedMinutes?: number
 }
 
+export interface UpdateTaskStatusRequest {
+  status: 'TODO' | 'IN_PROGRESS' | 'BLOCKED' | 'DONE'
+}
+
 export interface SearchRequest {
   query: string
   filters?: {
