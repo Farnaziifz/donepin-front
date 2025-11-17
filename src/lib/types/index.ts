@@ -170,6 +170,42 @@ export interface TasksBoardResponse {
   DONE: BoardTask[]
 }
 
+// Task Detail API Response
+export interface Project {
+  id: string
+  name: string
+  // Add other project fields as needed
+}
+
+export interface TaskEvent {
+  id: string
+  type: 'StatusChanged' | 'TaskCreated' | string
+  payload: Record<string, unknown>
+  userId: string
+  createdAt: string
+}
+
+export interface TaskDetail {
+  id: string
+  title: string
+  description: string | null
+  status: 'TODO' | 'IN_PROGRESS' | 'BLOCKED' | 'DONE'
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | null
+  dueDate: string | null
+  blockerReason: string | null
+  orgId: string
+  projectId: string | null
+  noteId: string | null
+  ownerId: string | null
+  createdAt: string
+  updatedAt: string
+  project: Project | null
+  note: Note | null
+  tags: Tag[]
+  assignees: Person[]
+  events: TaskEvent[]
+}
+
 // Error types
 
 export interface ApiError {

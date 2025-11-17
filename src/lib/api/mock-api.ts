@@ -23,6 +23,7 @@ import type {
   RegisterRequest,
   RegisterResponse,
   TasksBoardResponse,
+  TaskDetail,
 } from '../types'
 
 // Simulate network delay
@@ -221,7 +222,7 @@ export const api = {
 
   // Tasks
   getTasks: () => apiClient.get<TasksBoardResponse>('/tasks/board'),
-  getTask: (id: string) => apiClient.get<Task>(`/tasks/${id}`),
+  getTask: (id: string) => apiClient.get<TaskDetail>(`/tasks/${id}`),
   createTask: (data: CreateTaskRequest) => apiClient.post<Task>('/tasks', data),
   updateTask: (id: string, data: UpdateTaskRequest) => apiClient.patch<Task>(`/tasks/${id}`, data),
   updateTaskStatus: (id: string, data: UpdateTaskStatusRequest) => apiClient.patch<void>(`/tasks/${id}/status`, data),

@@ -5,7 +5,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../api'
 import { QUERY_KEYS } from '../../utils/constants'
-import type { CreateTaskRequest, UpdateTaskRequest, UpdateTaskStatusRequest, BoardTask, TasksBoardResponse, TaskStatus } from '../../types'
+import type { CreateTaskRequest, UpdateTaskRequest, UpdateTaskStatusRequest, BoardTask, TasksBoardResponse, TaskStatus, TaskDetail } from '../../types'
 
 // Map internal status to API status
 const mapInternalStatusToApi = (status: TaskStatus): BoardTask['status'] => {
